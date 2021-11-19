@@ -18,6 +18,10 @@ PICK_UP = "pick up"
 DELIVER = "deliver"
 WAIT = "wait"
 
+# Map
+PASSABLE = "passable"
+IMPASSABLE = "impassable"
+
 
 class DroneProblem(search.Problem):
     """This class implements a medical problem according to problem description file"""
