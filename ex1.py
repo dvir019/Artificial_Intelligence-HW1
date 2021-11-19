@@ -3,7 +3,6 @@ import random
 import math
 import pickle
 
-
 ids = ["111111111", "111111111"]
 
 # Objects
@@ -18,10 +17,9 @@ PICK_UP = "pick up"
 DELIVER = "deliver"
 WAIT = "wait"
 
+
 class DroneProblem(search.Problem):
     """This class implements a medical problem according to problem description file"""
-
-
 
     def __init__(self, initial):
         """Don't forget to implement the goal test
@@ -88,7 +86,6 @@ class DroneProblem(search.Problem):
     """Feel free to add your own functions
     (-2, -2, None) means there was a timeout"""
 
-
     def get_initial_drones(self, initial):
         drones = initial[DRONES]
         initial_drones = {}
@@ -130,6 +127,6 @@ class DroneProblem(search.Problem):
     def loads(self, state):
         return pickle.loads(state)
 
+
 def create_drone_problem(game):
     return DroneProblem(game)
-
