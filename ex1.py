@@ -1,7 +1,7 @@
 import search
 import random
 import math
-import json
+import pickle
 
 
 ids = ["111111111", "111111111"]
@@ -27,9 +27,9 @@ class DroneProblem(search.Problem):
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
                          CLIENTS: initial_clients}
-        initial_state_json = json.dumps(initial_state)
+        initial_state_pickle = pickle.dumps(initial_state)
 
-        search.Problem.__init__(self, initial_state_json)
+        search.Problem.__init__(self, initial_state_pickle)
         
     def actions(self, state):
         """Returns all the actions that can be executed in the given
@@ -44,7 +44,7 @@ class DroneProblem(search.Problem):
     def goal_test(self, state):
         """ Given a state, checks if this is the goal state.
          Returns True if it is, False otherwise."""
-        state = json.loads(state)
+        state = pickle.loads(state)
         clients = state[CLIENTS]
         for client in clients:
             if clients[client]:
@@ -59,6 +59,7 @@ class DroneProblem(search.Problem):
 
     """Feel free to add your own functions
     (-2, -2, None) means there was a timeout"""
+
 
     def get_initial_drones(self, initial):
         drones = initial[DRONES]
@@ -78,7 +79,7 @@ class DroneProblem(search.Problem):
 
     def get_initial_clients(self, initial, initial_packages):
         clients = initial[CLIENTS]
-        unwanted_packages = list(initial_packages.keys())
+        unwanted_packages = set(initial_packages.keys())
         initial_clients = {}
         for client in clients:
             client_packages = list(clients[client][PACKAGES])
