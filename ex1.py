@@ -5,11 +5,18 @@ import pickle
 
 
 ids = ["111111111", "111111111"]
+
+# Objects
 DRONES = "drones"
 PACKAGES = "packages"
 LOCATION = "location"
 CLIENTS = "clients"
 
+# Actions
+MOVE = "move"
+PICK_UP = "pick up"
+DELIVER = "deliver"
+WAIT = "wait"
 
 class DroneProblem(search.Problem):
     """This class implements a medical problem according to problem description file"""
