@@ -1,6 +1,7 @@
 import search
 import random
 import math
+import json
 
 
 ids = ["111111111", "111111111"]
@@ -20,7 +21,7 @@ class DroneProblem(search.Problem):
         You should change the initial to your own representation.
         search.Problem.__init__(self, initial) creates the root node"""
         print("----------------------------------------------------------------")
-        print(self.get_initial_drones(initial))
+        print(self.get_initial_packages(initial))
         search.Problem.__init__(self, initial)
         
     def actions(self, state):
@@ -60,7 +61,30 @@ class DroneProblem(search.Problem):
         for package in packages:
             initial_packages[package] = {LOCATION: packages[package], CLIENTS: None}
 
-    def get_client_by_package(self, package, ):
+        return initial_packages
+
+    def get_initial_clients(self, initial, initial_packages):
+        clients = initial[CLIENTS]
+        unwanted_packages = list(initial_packages.keys())
+        initial_clients = {}
+        for client in clients:
+            client_packages = list(clients[client][PACKAGES])
+            for package in client_packages:
+                if package not in unwanted_packages:
+                    pass  # TODO: Determine what to if UNSOLVABLE!
+                else:
+                    unwanted_packages.remove(package)
+                    initial_packages[package][CLIENTS] = client
+            initial_clients[client] = client_packages
+
+        for package in unwanted_packages:
+            initial_packages.pop(package)
+
+        return initial_clients
+
+
+
+    def get_client_by_package(self, package, ): pass
 
 
 def create_drone_problem(game):
