@@ -34,9 +34,9 @@ class DroneProblem(search.Problem):
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
                          CLIENTS: initial_clients}
-        initial_state_pickle = pickle.dumps(initial_state)
+        initial_state_hashable = self.dumps(initial_state)
 
-        search.Problem.__init__(self, initial_state_pickle)
+        search.Problem.__init__(self, initial_state_hashable)
         
     def actions(self, state):
         """Returns all the actions that can be executed in the given
@@ -51,7 +51,7 @@ class DroneProblem(search.Problem):
     def goal_test(self, state):
         """ Given a state, checks if this is the goal state.
          Returns True if it is, False otherwise."""
-        state = pickle.loads(state)
+        state = self.loads(state)
         clients = state[CLIENTS]
         for client in clients:
             if clients[client]:
@@ -103,6 +103,11 @@ class DroneProblem(search.Problem):
 
         return initial_clients
 
+    def dumps(self, state):
+        return pickle.dumps(state)
+
+    def loads(self, state):
+        return pickle.loads(state)
 
 def create_drone_problem(game):
     return DroneProblem(game)
