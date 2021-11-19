@@ -20,9 +20,16 @@ class DroneProblem(search.Problem):
         """Don't forget to implement the goal test
         You should change the initial to your own representation.
         search.Problem.__init__(self, initial) creates the root node"""
-        print("----------------------------------------------------------------")
-        print(self.get_initial_packages(initial))
-        search.Problem.__init__(self, initial)
+        initial_drones = self.get_initial_drones(initial)
+        initial_packages = self.get_initial_packages(initial)
+        initial_clients = self.get_initial_clients(initial, initial_packages)
+
+        initial_state = {DRONES: initial_drones,
+                         PACKAGES: initial_packages,
+                         CLIENTS: initial_clients}
+        initial_state_json = json.dumps(initial_state)
+
+        search.Problem.__init__(self, initial_state_json)
         
     def actions(self, state):
         """Returns all the actions that can be executed in the given
@@ -51,7 +58,7 @@ class DroneProblem(search.Problem):
         drones = initial[DRONES]
         initial_drones = {}
         for drone in drones:
-            initial_drones[drone] = {LOCATION: drones[drone], PACKAGES: set()}
+            initial_drones[drone] = {LOCATION: drones[drone], PACKAGES: list()}
 
         return initial_drones
 
@@ -81,10 +88,6 @@ class DroneProblem(search.Problem):
             initial_packages.pop(package)
 
         return initial_clients
-
-
-
-    def get_client_by_package(self, package, ): pass
 
 
 def create_drone_problem(game):
