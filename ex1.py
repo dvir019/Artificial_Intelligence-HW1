@@ -44,6 +44,12 @@ class DroneProblem(search.Problem):
     def goal_test(self, state):
         """ Given a state, checks if this is the goal state.
          Returns True if it is, False otherwise."""
+        state = json.loads(state)
+        clients = state[CLIENTS]
+        for client in clients:
+            if clients[client]:
+                return False
+        return True
 
     def h(self, node):
         """ This is the heuristic. It gets a node (not a state,
