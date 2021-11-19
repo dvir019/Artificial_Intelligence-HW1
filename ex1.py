@@ -10,6 +10,7 @@ DRONES = "drones"
 PACKAGES = "packages"
 LOCATION = "location"
 CLIENTS = "clients"
+MAP = "map"
 
 # Actions
 MOVE = "move"
@@ -33,6 +34,8 @@ class DroneProblem(search.Problem):
                          PACKAGES: initial_packages,
                          CLIENTS: initial_clients}
         initial_state_hashable = self.dumps(initial_state)
+
+        self.map = initial[MAP]  # TODO: Also save the path of the clients!
 
         search.Problem.__init__(self, initial_state_hashable)
 
