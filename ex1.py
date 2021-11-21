@@ -163,6 +163,31 @@ class DroneProblem(search.Problem):
 
         return tuple(possible_atomic_actions)
 
+    def get_move_atomic_actions(self, drone_data):
+        """ Get all the possible atomic actions the relate to movement for a
+        specific drone
+        :return: List that contains every possible move atomic action for the
+        drone
+        """
+        drone = drone_data[0]
+        location = drone_data[1]
+        move_actions = []
+        map_size = len(self.map)
+
+        if location[0] > 0:
+            move_actions.append((MOVE, drone, (location[0] - 1, location[1])))
+
+        if location[0] < len(map_size) - 1:
+            move_actions.append((MOVE, drone, (location[0] + 1, location[1])))
+
+        if location[1] > 0:
+            move_actions.append((MOVE, drone, (location[0], location[1] - 1)))
+
+        if location[1] < len(map_size) - 1:
+            move_actions.append((MOVE, drone, (location[0], location[1] + 1)))
+
+        return move_actions
+
 
 def create_drone_problem(game):
     return DroneProblem(game)
