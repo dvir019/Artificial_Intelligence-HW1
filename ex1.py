@@ -188,6 +188,39 @@ class DroneProblem(search.Problem):
 
         return move_actions
 
+    def get_deliver_atomic_actions(self, drone_data, state_dict):
+        """ Get all the possible atomic actions that relate to package delivery
+        for a specific drone
+        :return: List that contains every possible package delivery atomic
+        action for the drone
+        """
+        drone, location, drone_packages = drone_data
+        deliver_actions = []
+        current_round = state_dict[ROUND]
+
+        clients_on_current_location = self.clients_on_current_location(
+            location, current_round)
+
+        for client in clients_on_current_location:
+            package_tuple = state_dict[CLIENTS][client][PACKAGES]
+            for package in package_tuple:
+                if package in drone_packages:
+                    deliver_actions.append(drone, DELIVER, client, package)
+        return deliver_actions
+
+    def clients_on_current_location(self, location, current_round):
+        """ Get all the clients that currently in a specific location in the map
+        :return: List of the clients
+        """
+        clients_list = []
+        for client in self.client_paths:
+            client_path = self.client_paths[client_path]
+            position_on_path = current_round % (len(client_path) - 1)
+            client_location = client_path[position_on_path]
+            if client_location == location:
+                clients_list.append(client)
+        return clients_list
+
 
 def create_drone_problem(game):
     return DroneProblem(game)
