@@ -1,3 +1,5 @@
+import itertools
+
 import search
 import random
 import math
@@ -38,10 +40,10 @@ class DroneProblem(search.Problem):
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
                          CLIENTS: initial_clients,
-                         ROUND: 0}
+                         ROUND: 0}# TODO: check if should be in state
         initial_state_hashable = self.dumps(initial_state)
 
-        self.map = initial[MAP]  # TODO: Also save the path of the clients!
+        self.map = initial[MAP]
         self.client_paths = initial[CLIENTS]
 
         search.Problem.__init__(self, initial_state_hashable)
@@ -53,7 +55,13 @@ class DroneProblem(search.Problem):
 
         state_dict = self.loads(state)
         drones = state_dict[DRONES]
+        atomic_actions = []
+
         for drone in drones:
+            drone_atomic_actions = self.get_atomic_actions(drone, state_dict)
+            atomic_actions.append(drone_atomic_actions)
+
+        return list(itertools.product(*atomic_actions))
 
     def result(self, state, action):
         """Return the state that results from executing the given
