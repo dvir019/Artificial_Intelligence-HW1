@@ -11,6 +11,7 @@ PACKAGES = "packages"
 LOCATION = "location"
 CLIENTS = "clients"
 MAP = "map"
+ROUND = "round"
 
 # Actions
 MOVE = "move"
@@ -36,10 +37,12 @@ class DroneProblem(search.Problem):
 
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
-                         CLIENTS: initial_clients}
+                         CLIENTS: initial_clients,
+                         ROUND: 0}
         initial_state_hashable = self.dumps(initial_state)
 
         self.map = initial[MAP]  # TODO: Also save the path of the clients!
+        self.client_paths = initial[CLIENTS]
 
         search.Problem.__init__(self, initial_state_hashable)
 
@@ -48,15 +51,19 @@ class DroneProblem(search.Problem):
         state. The result should be a tuple (or other iterable) of actions
         as defined in the problem description file"""
 
+        state_dict = self.loads(state)
+        drones = state_dict[DRONES]
+        for drone in drones:
+
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state)."""
-        # state = self.loads(state)
+
         new_state = self.loads(state)
 
         for atomic_action in action:
-            act = action[0]
+            act = action[0]  # ?: Isn't it supposed to be atomic_action[0]?
             drone = atomic_action[1]
             if act == MOVE:
                 new_location = atomic_action[2]
@@ -64,15 +71,17 @@ class DroneProblem(search.Problem):
             elif act == PICK_UP:
                 package = atomic_action[2]
                 new_state[DRONES][drone][PACKAGES].append(package)
-                new_state[PACKAGES][package][LOCATION] = drone  # TODO: Check if OK
+                new_state[PACKAGES][package][
+                    LOCATION] = drone  # TODO: Check if OK
             elif act == DELIVER:
                 client = atomic_action[2]
                 package = atomic_action[3]
                 new_state[DRONES][drone][PACKAGES].remove(package)
-                new_state[PACKAGES][package][LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
+                new_state[PACKAGES][package][
+                    LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
                 new_state[CLIENTS][client].remove(package)
 
-        return new_state
+        return self.dumps(new_state)
 
     def goal_test(self, state):
         """ Given a state, checks if this is the goal state.
@@ -105,7 +114,8 @@ class DroneProblem(search.Problem):
         packages = initial[PACKAGES]
         initial_packages = {}
         for package in packages:
-            initial_packages[package] = {LOCATION: packages[package], CLIENTS: None}
+            initial_packages[package] = {LOCATION: packages[package],
+                                         CLIENTS: None}
 
         return initial_packages
 
@@ -133,6 +143,25 @@ class DroneProblem(search.Problem):
 
     def loads(self, state):
         return pickle.loads(state)
+
+    def get_atomic_actions(self, drone, state_dict):
+        """ Get all the possible atomic actions for a specific drone
+        :return: Tuple that contains every possible atomic action for the  drone
+        """
+        drone_object = state_dict[DRONES][drone]
+        drone_location = drone_object[LOCATION]
+        drone_packages = drone_object[PACKAGES]
+        drone_data = [drone, drone_location, drone_packages]
+
+        possible_atomic_actions = [(WAIT, drone)]
+        possible_atomic_actions.extend(
+            self.get_move_atomic_actions(drone_data))
+        possible_atomic_actions.extend(
+            self.get_deliver_atomic_actions(drone_data, state_dict))
+        possible_atomic_actions.extend(self.get_pickup_atomic_actions(
+            drone_data, state_dict))
+
+        return tuple(possible_atomic_actions)
 
 
 def create_drone_problem(game):
