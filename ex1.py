@@ -40,7 +40,7 @@ class DroneProblem(search.Problem):
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
                          CLIENTS: initial_clients,
-                         ROUND: 0}# TODO: check if should be in state
+                         ROUND: 0}  # TODO: check if should be in state
         initial_state_hashable = self.dumps(initial_state)
 
         self.map = initial[MAP]
@@ -179,19 +179,24 @@ class DroneProblem(search.Problem):
         """
         drone = drone_data[0]
         location = drone_data[1]
-        move_actions = []
-        map_size = len(self.map)
+        x = location[0]
+        y = location[1]
 
-        if location[0] > 0:
+        move_actions = []
+        map_size_x = len(self.map)
+        # TODO: make sure we reject a problem  with an empty map
+        map_size_y = len(self.map[0])
+
+        if x > 0 and self.map[x - 1][y] == PASSABLE:
             move_actions.append((MOVE, drone, (location[0] - 1, location[1])))
 
-        if location[0] < len(map_size) - 1:
+        if x < map_size_x - 1 and self.map[x + 1][y] == PASSABLE:
             move_actions.append((MOVE, drone, (location[0] + 1, location[1])))
 
-        if location[1] > 0:
+        if y > 0 and self.map[x][y - 1] == PASSABLE:
             move_actions.append((MOVE, drone, (location[0], location[1] - 1)))
 
-        if location[1] < len(map_size) - 1:
+        if y < map_size_y - 1 and self.map[x][y + 1] == PASSABLE:
             move_actions.append((MOVE, drone, (location[0], location[1] + 1)))
 
         return move_actions
