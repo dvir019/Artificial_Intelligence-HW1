@@ -71,7 +71,7 @@ class DroneProblem(search.Problem):
         new_state = self.loads(state)
 
         for atomic_action in action:
-            act = action[0]  # ?: Isn't it supposed to be atomic_action[0]?
+            act = atomic_action[0]
             drone = atomic_action[1]
             if act == MOVE:
                 new_location = atomic_action[2]
@@ -88,6 +88,8 @@ class DroneProblem(search.Problem):
                 new_state[PACKAGES][package][
                     LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
                 new_state[CLIENTS][client].remove(package)
+
+        new_state[ROUND] = new_state[ROUND] + 1
 
         return self.dumps(new_state)
 
