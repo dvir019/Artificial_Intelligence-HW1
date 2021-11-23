@@ -218,7 +218,7 @@ class DroneProblem(search.Problem):
             package_tuple = state_dict[CLIENTS][client][PACKAGES]
             for package in package_tuple:
                 if package in drone_packages:
-                    deliver_actions.append(drone, DELIVER, client, package)
+                    deliver_actions.append((DELIVER, drone, client, package))
         return deliver_actions
 
     def get_pickup_atomic_actions(self, drone_data, state_dict):
@@ -230,11 +230,12 @@ class DroneProblem(search.Problem):
         drone, location, drone_packages = drone_data
         pickup_actions = []
 
-        packages_on_current_location = self.packages_on_current_location(
-            location, state_dict)
-        for package in packages_on_current_location:
-            if package in drone_packages:
-                pickup_actions.append((PICK_UP, drone, package))
+        if len(drone_packages) < 2:
+            packages_on_current_location = self.packages_on_current_location(
+                location, state_dict)
+            for package in packages_on_current_location:
+                if package in drone_packages:
+                    pickup_actions.append((PICK_UP, drone, package))
         return pickup_actions
 
     def clients_on_current_location(self, location, current_round):
@@ -243,7 +244,7 @@ class DroneProblem(search.Problem):
         """
         clients_list = []
         for client in self.client_paths:
-            client_path = self.client_paths[client_path]
+            client_path = self.client_paths[client]
             position_on_path = current_round % (len(client_path) - 1)
             client_location = client_path[position_on_path]
             if client_location == location:
