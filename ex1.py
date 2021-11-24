@@ -14,6 +14,7 @@ LOCATION = "location"
 CLIENTS = "clients"
 MAP = "map"
 ROUND = "round"
+PATH = "path"
 
 # Actions
 MOVE = "move"
@@ -22,8 +23,8 @@ DELIVER = "deliver"
 WAIT = "wait"
 
 # Map
-PASSABLE = "passable"
-IMPASSABLE = "impassable"
+PASSABLE = "P"
+IMPASSABLE = "I"
 
 
 class DroneProblem(search.Problem):
@@ -44,7 +45,8 @@ class DroneProblem(search.Problem):
         initial_state_hashable = self.dumps(initial_state)
 
         self.map = initial[MAP]
-        self.client_paths = initial[CLIENTS]
+        self.client_paths = self.get_clients_paths(initial)
+        a=3
 
         search.Problem.__init__(self, initial_state_hashable)
 
@@ -61,7 +63,59 @@ class DroneProblem(search.Problem):
             drone_atomic_actions = self.get_atomic_actions(drone, state_dict)
             atomic_actions.append(drone_atomic_actions)
 
-        return list(itertools.product(*atomic_actions))
+        return self.get_proper_actions(atomic_actions)
+
+    def get_proper_actions(self, atomic_actions):
+        """ Get the set of possible actions without the actions that include
+            without the option of two drones picking the same package
+        """
+        actions_set = set
+        duplicate_group = self.get_same_package_pickup(atomic_actions)
+        for duplication in duplicate_group:
+            for atomic_action in duplication:
+                atomic_actions_removed = self.remove_atomic_action(
+                    atomic_actions, atomic_action)
+                actions_set.add(itertools.product(*atomic_actions_removed))
+        return actions_set
+
+    def remove_atomic_action(self, atomic_actions, atomic_action):
+        atomic_actions_copy = atomic_actions.copy()
+        for i in range(len(atomic_actions)):
+            if atomic_action in atomic_actions[i]:
+                drone_atomic_action = atomic_actions_copy[i]
+                atomic_actions_copy.remove(drone_atomic_action)
+
+                drone_atomic_action = list(drone_atomic_action)
+                drone_atomic_action.remove(atomic_action)
+                drone_atomic_action = tuple(drone_atomic_action)
+
+                atomic_actions_copy.add(drone_atomic_action)
+        return atomic_actions_copy
+
+    # TODO: check if more efficient than just removing them after product
+
+    def get_same_package_pickup(self, atomic_actions):
+        """ Get all the groups of atomic actions that have an action to pick
+            up the same package
+        """
+        pickup_actions = []
+        different_packages = set()
+        duplications = []
+        for drone_atomic_actions in atomic_actions:
+            for atomic_action in drone_atomic_actions:
+                if atomic_action[0] == PICK_UP:
+                    pickup_actions.append(atomic_action)
+            for pickup_action in pickup_actions:
+                different_packages.add(pickup_action[2])
+
+            for package in different_packages:
+                package_duplication = []
+                for pickup_action in atomic_actions:
+                    if pickup_action[2] == package:
+                        package_duplication.append(pickup_action)
+                if len(package_duplication) > 1:
+                    duplications.append(package_duplication)
+        return duplications
 
     def result(self, state, action):
         """Return the state that results from executing the given
@@ -111,6 +165,13 @@ class DroneProblem(search.Problem):
 
     """Feel free to add your own functions
     (-2, -2, None) means there was a timeout"""
+
+    def get_clients_paths(self, initial):
+        initial_clients = initial[CLIENTS]
+        clients_path = {}
+        for client in initial_clients:
+            clients_path[client] = initial_clients[client][PATH]
+        return clients_path
 
     def get_initial_drones(self, initial):
         drones = initial[DRONES]
