@@ -13,7 +13,6 @@ PACKAGES = "packages"
 LOCATION = "location"
 CLIENTS = "clients"
 MAP = "map"
-ROUND = "round"
 PATH = "path"
 
 # Actions
@@ -40,13 +39,12 @@ class DroneProblem(search.Problem):
 
         initial_state = {DRONES: initial_drones,
                          PACKAGES: initial_packages,
-                         CLIENTS: initial_clients,
-                         ROUND: 0}  # TODO: check if should be in state
+                         CLIENTS: initial_clients}
         initial_state_hashable = self.dumps(initial_state)
 
         self.map = initial[MAP]
         self.client_paths = self.get_clients_paths(initial)
-        a=3
+        self.current_round = 0
 
         search.Problem.__init__(self, initial_state_hashable)
 
@@ -62,60 +60,17 @@ class DroneProblem(search.Problem):
         for drone in drones:
             drone_atomic_actions = self.get_atomic_actions(drone, state_dict)
             atomic_actions.append(drone_atomic_actions)
+        actions = list(filter(self.filter_duplicate_pickups,
+                              itertools.product(*atomic_actions)))
+        self.current_round += 1
+        return actions
 
-        return self.get_proper_actions(atomic_actions)
-
-    def get_proper_actions(self, atomic_actions):
-        """ Get the set of possible actions without the actions that include
-            without the option of two drones picking the same package
-        """
-        actions_set = set
-        duplicate_group = self.get_same_package_pickup(atomic_actions)
-        for duplication in duplicate_group:
-            for atomic_action in duplication:
-                atomic_actions_removed = self.remove_atomic_action(
-                    atomic_actions, atomic_action)
-                actions_set.add(itertools.product(*atomic_actions_removed))
-        return actions_set
-
-    def remove_atomic_action(self, atomic_actions, atomic_action):
-        atomic_actions_copy = atomic_actions.copy()
-        for i in range(len(atomic_actions)):
-            if atomic_action in atomic_actions[i]:
-                drone_atomic_action = atomic_actions_copy[i]
-                atomic_actions_copy.remove(drone_atomic_action)
-
-                drone_atomic_action = list(drone_atomic_action)
-                drone_atomic_action.remove(atomic_action)
-                drone_atomic_action = tuple(drone_atomic_action)
-
-                atomic_actions_copy.add(drone_atomic_action)
-        return atomic_actions_copy
-
-    # TODO: check if more efficient than just removing them after product
-
-    def get_same_package_pickup(self, atomic_actions):
-        """ Get all the groups of atomic actions that have an action to pick
-            up the same package
-        """
-        pickup_actions = []
-        different_packages = set()
-        duplications = []
-        for drone_atomic_actions in atomic_actions:
-            for atomic_action in drone_atomic_actions:
-                if atomic_action[0] == PICK_UP:
-                    pickup_actions.append(atomic_action)
-            for pickup_action in pickup_actions:
-                different_packages.add(pickup_action[2])
-
-            for package in different_packages:
-                package_duplication = []
-                for pickup_action in atomic_actions:
-                    if pickup_action[2] == package:
-                        package_duplication.append(pickup_action)
-                if len(package_duplication) > 1:
-                    duplications.append(package_duplication)
-        return duplications
+    def filter_duplicate_pickups(self, action):
+        package_actions = []
+        for atomic_action in action:
+            if atomic_action[0] == PICK_UP:
+                package_actions.append(atomic_action)
+        return len(package_actions) == len(set(package_actions))
 
     def result(self, state, action):
         """Return the state that results from executing the given
@@ -143,15 +98,13 @@ class DroneProblem(search.Problem):
                     LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
                 new_state[CLIENTS][client].remove(package)
 
-        new_state[ROUND] = new_state[ROUND] + 1
-
         return self.dumps(new_state)
 
     def goal_test(self, state):
         """ Given a state, checks if this is the goal state.
          Returns True if it is, False otherwise."""
-        state = self.loads(state)
-        clients = state[CLIENTS]
+        dict_state = self.loads(state)
+        clients = dict_state[CLIENTS]
         for client in clients:
             if clients[client]:
                 return False
@@ -272,13 +225,12 @@ class DroneProblem(search.Problem):
         """
         drone, location, drone_packages = drone_data
         deliver_actions = []
-        current_round = state_dict[ROUND]
 
         clients_on_current_location = self.clients_on_current_location(
-            location, current_round)
+            location, self.current_round)
 
         for client in clients_on_current_location:
-            package_tuple = state_dict[CLIENTS][client][PACKAGES]
+            package_tuple = state_dict[CLIENTS][client]
             for package in package_tuple:
                 if package in drone_packages:
                     deliver_actions.append((DELIVER, drone, client, package))
@@ -297,8 +249,7 @@ class DroneProblem(search.Problem):
             packages_on_current_location = self.packages_on_current_location(
                 location, state_dict)
             for package in packages_on_current_location:
-                if package in drone_packages:
-                    pickup_actions.append((PICK_UP, drone, package))
+                pickup_actions.append((PICK_UP, drone, package))
         return pickup_actions
 
     def clients_on_current_location(self, location, current_round):
@@ -308,7 +259,7 @@ class DroneProblem(search.Problem):
         clients_list = []
         for client in self.client_paths:
             client_path = self.client_paths[client]
-            position_on_path = current_round % (len(client_path) - 1)
+            position_on_path = current_round % (len(client_path))
             client_location = client_path[position_on_path]
             if client_location == location:
                 clients_list.append(client)
@@ -317,7 +268,7 @@ class DroneProblem(search.Problem):
     def packages_on_current_location(self, location, state_dict):
         package_list = []
         for package in state_dict[PACKAGES]:
-            if state_dict[PACKAGES][package] == location:
+            if state_dict[PACKAGES][package][LOCATION] == location:
                 package_list.append(package)
 
         return package_list
