@@ -69,7 +69,7 @@ class DroneProblem(search.Problem):
         package_actions = []
         for atomic_action in action:
             if atomic_action[0] == PICK_UP:
-                package_actions.append(atomic_action)
+                package_actions.append(atomic_action[2])
         return len(package_actions) == len(set(package_actions))
 
     def result(self, state, action):
@@ -138,8 +138,7 @@ class DroneProblem(search.Problem):
         packages = initial[PACKAGES]
         initial_packages = {}
         for package in packages:
-            initial_packages[package] = {LOCATION: packages[package],
-                                         CLIENTS: None}
+            initial_packages[package] = {LOCATION: packages[package]}
 
         return initial_packages
 
