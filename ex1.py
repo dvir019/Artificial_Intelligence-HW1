@@ -4,6 +4,7 @@ import search
 import random
 import math
 import pickle
+import numpy as np
 
 ids = ["111111111", "111111111"]
 
@@ -46,8 +47,8 @@ class DroneProblem(search.Problem):
         self.client_paths = self.get_clients_paths(initial)
         self.current_round = 0
 
-        import json
-        print(json.dumps(initial_state, indent=4))
+        # import json
+        # print(json.dumps(initial_state, indent=4))
 
         search.Problem.__init__(self, initial_state_hashable)
 
@@ -55,7 +56,6 @@ class DroneProblem(search.Problem):
         """Returns all the actions that can be executed in the given
         state. The result should be a tuple (or other iterable) of actions
         as defined in the problem description file"""
-
         state_dict = self.loads(state)
         drones = state_dict[DRONES]
         atomic_actions = []
@@ -99,7 +99,8 @@ class DroneProblem(search.Problem):
                 new_state[DRONES][drone][PACKAGES].remove(package)
                 new_state[PACKAGES][package][
                     LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
-                new_state[CLIENTS][client][PACKAGES].remove(package)  # Add here packages
+                new_state[CLIENTS][client][PACKAGES].remove(
+                    package)  # Add here packages
 
         self.update_clients_location(new_state)
 
@@ -119,10 +120,49 @@ class DroneProblem(search.Problem):
         """ This is the heuristic. It gets a node (not a state,
         state can be accessed via node.state)
         and returns a goal distance estimate"""
-        return 0
+        h = 0
+        state_dict = self.loads(node.state)
+        drones = state_dict[DRONES]
+        for drone in drones:
+            packages = state_dict[DRONES][drone][PACKAGES]
+            if packages == [] and self.package_exists(state_dict):
+                h += self.shortest_distance_from_package(drone, state_dict)
+            else:
+                h += self.shortest_distance_from_client(drone, state_dict)
+        return h
 
-    """Feel free to add your own functions
-    (-2, -2, None) means there was a timeout"""
+    def package_exists(self, state_dict):
+        packages = state_dict[PACKAGES]
+        for package in packages:
+            if not isinstance(packages[package][LOCATION], str):
+                return True
+        return False
+    def shortest_distance_from_package(self, drone, state_dict):
+        drone_location = state_dict[DRONES][drone][LOCATION]
+        package_locations = []
+        for package in state_dict[PACKAGES]:
+            package_location = state_dict[PACKAGES][package][LOCATION]
+            if not isinstance(package, str):
+                package_locations.append(package_location)
+        if package_locations == []:
+            return 0
+        package_distances = [np.linalg.norm(np.array(drone_location) -
+                                            np.array(package_location)) for
+                             package_location in package_locations]
+        return min(package_distances)
+
+    def shortest_distance_from_client(self, drone, state_dict):
+        drone_location = state_dict[DRONES][drone][LOCATION]
+        client_locations = []
+        for client in state_dict[CLIENTS]:
+            location_index = state_dict[CLIENTS][client][LOCATION]
+            client_path = self.client_paths[client]
+            client_location = client_path[location_index % len(client_path)]
+            client_locations.append(client_location)
+        client_distances = [np.linalg.norm(np.array(drone_location) -
+                                           np.array(client_location)) for
+                            client_location in client_locations]
+        return min(client_distances)
 
     def get_clients_paths(self, initial):
         initial_clients = initial[CLIENTS]
@@ -232,10 +272,11 @@ class DroneProblem(search.Problem):
         deliver_actions = []
 
         clients_on_current_location = self.clients_on_current_location(
-            location, self.current_round)
+            location, state_dict)
 
         for client in clients_on_current_location:
-            package_tuple = state_dict[CLIENTS][client][PACKAGES]  # Add here packages
+            package_tuple = state_dict[CLIENTS][client][
+                PACKAGES]  # Add here packages
             for package in package_tuple:
                 if package in drone_packages:
                     deliver_actions.append((DELIVER, drone, client, package))
@@ -257,14 +298,14 @@ class DroneProblem(search.Problem):
                 pickup_actions.append((PICK_UP, drone, package))
         return pickup_actions
 
-    def clients_on_current_location(self, location, current_round):
+    def clients_on_current_location(self, location, state_dict):
         """ Get all the clients that currently in a specific location in the map
         :return: List of the clients
         """
         clients_list = []
         for client in self.client_paths:
             client_path = self.client_paths[client]
-            position_on_path = current_round % (len(client_path))
+            position_on_path = state_dict[CLIENTS][client][LOCATION]
             client_location = client_path[position_on_path]
             if client_location == location:
                 clients_list.append(client)
@@ -285,7 +326,7 @@ class DroneProblem(search.Problem):
             old_index = clients[client][LOCATION]
             new_index = (old_index + 1) % path_length
             clients[client][LOCATION] = new_index
-            print(f"Turn index of {client}: {old_index} -> {new_index}")
+            # print(f"Turn index of {client}: {old_index} -> {new_index}")
 
 
 def create_drone_problem(game):
