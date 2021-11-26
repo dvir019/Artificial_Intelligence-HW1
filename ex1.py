@@ -46,6 +46,9 @@ class DroneProblem(search.Problem):
         self.client_paths = self.get_clients_paths(initial)
         self.current_round = 0
 
+        import json
+        print(json.dumps(initial_state, indent=4))
+
         search.Problem.__init__(self, initial_state_hashable)
 
     def actions(self, state):
@@ -62,7 +65,7 @@ class DroneProblem(search.Problem):
             atomic_actions.append(drone_atomic_actions)
         actions = list(filter(self.filter_duplicate_pickups,
                               itertools.product(*atomic_actions)))
-        self.current_round += 1
+        # self.current_round += 1
         return actions
 
     def filter_duplicate_pickups(self, action):
@@ -96,7 +99,9 @@ class DroneProblem(search.Problem):
                 new_state[DRONES][drone][PACKAGES].remove(package)
                 new_state[PACKAGES][package][
                     LOCATION] = DELIVER  # TODO: Check if OK (Maybe just delete the package)
-                new_state[CLIENTS][client].remove(package)
+                new_state[CLIENTS][client][PACKAGES].remove(package)  # Add here packages
+
+        self.update_clients_location(new_state)
 
         return self.dumps(new_state)
 
@@ -106,7 +111,7 @@ class DroneProblem(search.Problem):
         dict_state = self.loads(state)
         clients = dict_state[CLIENTS]
         for client in clients:
-            if clients[client]:
+            if clients[client][PACKAGES]:  # Add here packages
                 return False
         return True
 
@@ -154,7 +159,8 @@ class DroneProblem(search.Problem):
                 else:
                     unwanted_packages.remove(package)
                     initial_packages[package][CLIENTS] = client
-            initial_clients[client] = client_packages
+            initial_clients[client] = {PACKAGES: client_packages,
+                                       LOCATION: 0}
 
         for package in unwanted_packages:
             initial_packages.pop(package)
@@ -229,7 +235,7 @@ class DroneProblem(search.Problem):
             location, self.current_round)
 
         for client in clients_on_current_location:
-            package_tuple = state_dict[CLIENTS][client]
+            package_tuple = state_dict[CLIENTS][client][PACKAGES]  # Add here packages
             for package in package_tuple:
                 if package in drone_packages:
                     deliver_actions.append((DELIVER, drone, client, package))
@@ -271,6 +277,15 @@ class DroneProblem(search.Problem):
                 package_list.append(package)
 
         return package_list
+
+    def update_clients_location(self, state_dict):
+        clients = state_dict[CLIENTS]
+        for client in clients:
+            path_length = len(self.client_paths[client])
+            old_index = clients[client][LOCATION]
+            new_index = (old_index + 1) % path_length
+            clients[client][LOCATION] = new_index
+            print(f"Turn index of {client}: {old_index} -> {new_index}")
 
 
 def create_drone_problem(game):
