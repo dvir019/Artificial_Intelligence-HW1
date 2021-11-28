@@ -140,7 +140,7 @@ class DroneProblem(search.Problem):
         # for client in dict_state[CLIENTS]:
         #     count += len(dict_state[CLIENTS][client][PACKAGES])
         # return count + node.depth
-        return self.objects_distance_sum_h(node)
+        return self.objects_distance_sum_h(node) + node.depth
 
     def objects_distance_sum_h(self, node):
         state_dict = self.loads(node.state)
@@ -153,7 +153,7 @@ class DroneProblem(search.Problem):
             if clients[client][PACKAGES]:
                 clients_index = clients[client][LOCATION]
                 client_path = self.client_paths[client]
-                objects_locations.append(client_path[clients_index])
+                objects_locations.append(client_path[0])
 
 
         objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
@@ -165,7 +165,7 @@ class DroneProblem(search.Problem):
             drone_location_index = self.convert_tuple_to_index(drone_location)
             sum += self.distance_sum_from_location(drone_location_index, objects_locations_indexes)
 
-        return sum + node.depth
+        return sum
 
     def distance_sum_from_location(self, location, locations_list):
         sum = 0
