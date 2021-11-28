@@ -5,6 +5,9 @@ import random
 import math
 import pickle
 import numpy as np
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import floyd_warshall
+
 
 ids = ["111111111", "111111111"]
 
@@ -120,16 +123,26 @@ class DroneProblem(search.Problem):
         """ This is the heuristic. It gets a node (not a state,
         state can be accessed via node.state)
         and returns a goal distance estimate"""
-        h = 0
-        state_dict = self.loads(node.state)
-        drones = state_dict[DRONES]
-        for drone in drones:
-            packages = state_dict[DRONES][drone][PACKAGES]
-            if packages == [] and self.package_exists(state_dict):
-                h += self.shortest_distance_from_package(drone, state_dict)
-            else:
-                h += self.shortest_distance_from_client(drone, state_dict)
-        return h
+
+        # h = 0
+        # state_dict = self.loads(node.state)
+        # drones = state_dict[DRONES]
+        # for drone in drones:
+        #     packages = state_dict[DRONES][drone][PACKAGES]
+        #     if packages == [] and self.package_exists(state_dict):
+        #         h += self.shortest_distance_from_package(drone, state_dict)
+        #     else:
+        #         h += self.shortest_distance_from_client(drone, state_dict)
+        # return h
+
+        count = 0
+        dict_state = self.loads(node.state)
+        for client in dict_state[CLIENTS]:
+            count += len(dict_state[CLIENTS][client][PACKAGES])
+        return count + node.depth
+
+
+
 
     def package_exists(self, state_dict):
         packages = state_dict[PACKAGES]
@@ -137,6 +150,7 @@ class DroneProblem(search.Problem):
             if not isinstance(packages[package][LOCATION], str):
                 return True
         return False
+
     def shortest_distance_from_package(self, drone, state_dict):
         drone_location = state_dict[DRONES][drone][LOCATION]
         package_locations = []
@@ -328,6 +342,207 @@ class DroneProblem(search.Problem):
             clients[client][LOCATION] = new_index
             # print(f"Turn index of {client}: {old_index} -> {new_index}")
 
+    def create_map_graph(self, problem_map):
+        m = len(problem_map)
+        n = len(problem_map[0])
+        # matrix = [[0 for _ in range(m * n)] for _ in range(m * n)]
+        row = []
+        col = []
+        data = []
+        for i in range(m):
+            for j in range(n):
+                index = self.convert_tuple_to_index((i, j), m, n)
+                if i < m - 1 and problem_map[i + 1][j] == PASSABLE:
+                    lower_index = index + n
+                    row.append(index)
+                    col.append(lower_index)
+                    data.append(1)
+                if i > 0 and problem_map[i - 1][j] == PASSABLE:
+                    upper_index = index - n
+                    row.append(index)
+                    col.append(upper_index)
+                    data.append(1)
+                if j < n - 1 and problem_map[i][j + 1] == PASSABLE:
+                    right_index = index + 1
+                    row.append(index)
+                    col.append(right_index)
+                    data.append(1)
+                if j > 0 and problem_map[i][j - 1] == PASSABLE:
+                    left_index = index - 1
+                    row.append(index)
+                    col.append(left_index)
+                    data.append(1)
+        return csr_matrix((data, (row, col)), shape=(m * n, m * n))
 
-def create_drone_problem(game):
-    return DroneProblem(game)
+    def create_dist_matrix(self, graph):
+        dist_matrix, predecessors = floyd_warshall(csgraph=graph, directed=True, return_predecessors=True, unweighted=False)
+        return dist_matrix
+
+    def convert_index_to_tuple(self, index, m, n):
+        return index // n, index - (index // n) * m
+
+    def convert_tuple_to_index(self, t, m, n):
+        return t[0] * n + t[1]
+
+
+
+# def create_drone_problem(game):
+#     return DroneProblem(game)
+#
+#
+#
+# def convert_tuple_to_index(t, m, n):
+#     return t[0] * n + t[1]
+
+# def create_map_graph(problem_map):
+#     m = len(problem_map)
+#     n = len(problem_map[0])
+#     matrix = [[0 for _ in range(m * n)] for _ in range(m * n)]
+#     for i in range(m):
+#         for j in range(n):
+#             index = convert_tuple_to_index((i, j), m, n)
+#             if i < m - 1 and problem_map[i + 1][j] == PASSABLE:
+#                 lower_index = index + n
+#                 matrix[index][lower_index] = 1
+#             if i > 0 and problem_map[i - 1][j] == PASSABLE:
+#                 upper_index = index - n
+#                 matrix[index][upper_index] = 1
+#             if j < n - 1 and problem_map[i][j + 1] == PASSABLE:
+#                 right_index = index + 1
+#                 matrix[index][right_index] = 1
+#             if j > 0 and problem_map[i][j - 1] == PASSABLE:
+#                 left_index = index - 1
+#                 matrix[index][left_index] = 1
+#     return csr_matrix(matrix)
+#
+#
+# def create_map_graph2(problem_map):
+#     m = len(problem_map)
+#     n = len(problem_map[0])
+#     # matrix = [[0 for _ in range(m * n)] for _ in range(m * n)]
+#     row = []
+#     col = []
+#     data = []
+#     for i in range(m):
+#         for j in range(n):
+#             index = convert_tuple_to_index((i, j), m, n)
+#             if i < m - 1 and problem_map[i + 1][j] == PASSABLE:
+#                 lower_index = index + n
+#                 row.append(index)
+#                 col.append(lower_index)
+#                 data.append(1)
+#             if i > 0 and problem_map[i - 1][j] == PASSABLE:
+#                 upper_index = index - n
+#                 row.append(index)
+#                 col.append(upper_index)
+#                 data.append(1)
+#             if j < n - 1 and problem_map[i][j + 1] == PASSABLE:
+#                 right_index = index + 1
+#                 row.append(index)
+#                 col.append(right_index)
+#                 data.append(1)
+#             if j > 0 and problem_map[i][j - 1] == PASSABLE:
+#                 left_index = index - 1
+#                 row.append(index)
+#                 col.append(left_index)
+#                 data.append(1)
+#     return csr_matrix((data, (row, col)), shape=(m * n, m * n))
+
+# def construct_path(pre, start, end):
+#     path = [end]
+#     current = end
+#     while current != start:
+#         if current == -9999:
+#             return []
+#         current = pre[current]
+#         path.append(current)
+#     path.reverse()
+#     return path
+#
+# def construct_paths(pre):
+#     d = {}
+#     for i in range(len(pre)):
+#         for j in range(len(pre[0])):
+#             d[(i, j)] = construct_path(pre[i], i, j)
+#     return d
+#
+# if __name__ == '__main__':
+#     p_map =    [['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P']]
+#     # p_map = [['P', 'P', 'P', 'P'],
+#     #          ['P', 'P', 'P', 'P'],
+#     #          ['P', 'I', 'P', 'P'],
+#     #          ['P', 'P', 'P', 'P'], ]
+#     p_map = [['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'I', 'P'],
+#                 ['P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P'],
+#                 ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P']]
+#     print(f"{len(p_map)} by {len(p_map[0])}")
+#     import time
+#     cur = time.time()
+#     graph1 = create_map_graph(p_map)
+#     dist_matrix1, predecessors1 = floyd_warshall(csgraph=graph1, directed=True, return_predecessors=True)
+#     graph2 = create_map_graph2(p_map)
+#     dist_matrix2, predecessors2 = floyd_warshall(csgraph=graph2, directed=True, return_predecessors=True, unweighted=False)
+#     print(time.time() - cur)
+#     # print((dist_matrix1 == dist_matrix2).all() and (predecessors1 == predecessors2).all())
+#     # print(list(predecessors2[0]))
+#
+#     p = predecessors2
+#     pp = [list(a) for a in p]
+#     # for a in pp:
+#     #     print(a)
+#     # x = reconstruct_path(graph2, predecessors2[0])
+#     x = construct_paths(p).items()
+#     # for k, v in x:
+#     #     print(f"{k}: {v}")
+#     # print(x)
+
