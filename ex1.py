@@ -49,6 +49,7 @@ class DroneProblem(search.Problem):
         self.map = initial[MAP]
         self.client_paths = self.get_clients_paths(initial)
         self.client_paths_indexes = self.get_clients_paths_indexes(self.client_paths)
+        self.client_centroids = self.get_clients_centroid(self.client_paths)
 
         graph = self.create_map_graph(self.map)
         self.dist_matrix = self.create_dist_matrix(graph)
@@ -135,12 +136,12 @@ class DroneProblem(search.Problem):
         #         h += self.shortest_distance_from_client(drone, state_dict)
         # return h
 
-        # count = 0
-        # dict_state = self.loads(node.state)
-        # for client in dict_state[CLIENTS]:
-        #     count += len(dict_state[CLIENTS][client][PACKAGES])
+        count = 0
+        dict_state = self.loads(node.state)
+        for client in dict_state[CLIENTS]:
+            count += len(dict_state[CLIENTS][client][PACKAGES])
         # return count + node.depth
-        return self.objects_distance_sum_closest_clients_h(node) + node.depth
+        return self.objects_distance_sum_h(node) + node.depth + count
 
     def objects_distance_sum_h(self, node):
         state_dict = self.loads(node.state)
@@ -153,7 +154,7 @@ class DroneProblem(search.Problem):
             if clients[client][PACKAGES]:
                 clients_index = clients[client][LOCATION]
                 client_path = self.client_paths[client]
-                objects_locations.append(client_path[0])
+                objects_locations.append(client_path[0])#(self.client_centroids[client])#(client_path[0])
 
 
         objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
@@ -298,13 +299,13 @@ class DroneProblem(search.Problem):
         drone_packages = drone_object[PACKAGES]
         drone_data = [drone, drone_location, drone_packages]
 
-        possible_atomic_actions = [(WAIT, drone)]
+        possible_atomic_actions = []#[(WAIT, drone)]
+        possible_atomic_actions.extend(self.get_pickup_atomic_actions(
+            drone_data, state_dict))
         possible_atomic_actions.extend(
             self.get_move_atomic_actions(drone_data))
         possible_atomic_actions.extend(
             self.get_deliver_atomic_actions(drone_data, state_dict))
-        possible_atomic_actions.extend(self.get_pickup_atomic_actions(
-            drone_data, state_dict))
 
         return tuple(possible_atomic_actions)
 
@@ -456,6 +457,10 @@ class DroneProblem(search.Problem):
             paths_indexes[client] = path_indexes
 
         return paths_indexes
+
+    def get_clients_centroid(self, client_paths):
+        centroids = {client: tuple(np.rint(np.mean(client_paths[client], axis=0)).astype(np.int64)) for client in client_paths}
+        return centroids
 
 def create_drone_problem(game):
     return DroneProblem(game)
