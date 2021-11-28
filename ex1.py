@@ -50,8 +50,8 @@ class DroneProblem(search.Problem):
         self.client_paths = self.get_clients_paths(initial)
         self.current_round = 0
 
-        # import json
-        # print(json.dumps(initial_state, indent=4))
+        graph = self.create_map_graph(self.map)
+        self.dist_matrix = self.create_dist_matrix(graph)
 
         search.Problem.__init__(self, initial_state_hashable)
 
@@ -135,13 +135,43 @@ class DroneProblem(search.Problem):
         #         h += self.shortest_distance_from_client(drone, state_dict)
         # return h
 
-        count = 0
-        dict_state = self.loads(node.state)
-        for client in dict_state[CLIENTS]:
-            count += len(dict_state[CLIENTS][client][PACKAGES])
-        return count + node.depth
+        # count = 0
+        # dict_state = self.loads(node.state)
+        # for client in dict_state[CLIENTS]:
+        #     count += len(dict_state[CLIENTS][client][PACKAGES])
+        # return count + node.depth
+        return self.objects_distance_sum_h(node)
+
+    def objects_distance_sum_h(self, node):
+        state_dict = self.loads(node.state)
+        packages = state_dict[PACKAGES]
+        objects_locations = [packages[package][LOCATION] for package in packages if not isinstance(packages[package][LOCATION], str)]
+
+        clients = state_dict[CLIENTS]
+        # clients_locations = []
+        for client in clients:
+            if clients[client][PACKAGES]:
+                clients_index = clients[client][LOCATION]
+                client_path = self.client_paths[client]
+                objects_locations.append(client_path[clients_index])
 
 
+        objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
+
+        sum = 0
+        drones = state_dict[DRONES]
+        for drone in drones:
+            drone_location = drones[drone][LOCATION]
+            drone_location_index = self.convert_tuple_to_index(drone_location)
+            sum += self.distance_sum_from_location(drone_location_index, objects_locations_indexes)
+
+        return sum + node.depth
+
+    def distance_sum_from_location(self, location, locations_list):
+        sum = 0
+        for index in locations_list:
+            sum += self.dist_matrix[location][index]
+        return sum
 
 
     def package_exists(self, state_dict):
@@ -351,7 +381,7 @@ class DroneProblem(search.Problem):
         data = []
         for i in range(m):
             for j in range(n):
-                index = self.convert_tuple_to_index((i, j), m, n)
+                index = self.convert_tuple_to_index((i, j))
                 if i < m - 1 and problem_map[i + 1][j] == PASSABLE:
                     lower_index = index + n
                     row.append(index)
@@ -381,13 +411,15 @@ class DroneProblem(search.Problem):
     def convert_index_to_tuple(self, index, m, n):
         return index // n, index - (index // n) * m
 
-    def convert_tuple_to_index(self, t, m, n):
+    def convert_tuple_to_index(self, t):
+        # m = len(self.map)
+        n = len(self.map[0])
         return t[0] * n + t[1]
 
 
 
-# def create_drone_problem(game):
-#     return DroneProblem(game)
+def create_drone_problem(game):
+    return DroneProblem(game)
 #
 #
 #

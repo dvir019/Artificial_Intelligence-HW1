@@ -84,31 +84,31 @@ def main():
                                   "packages": ('package 1', 'package 2')}}
         },
 
-        {
-            "map": [['P', 'P', 'P', 'P'],
-                    ['P', 'P', 'P', 'P'],
-                    ['P', 'I', 'P', 'P'],
-                    ['P', 'P', 'P', 'P'], ],
-            "drones": {'drone 1': (3, 3)},
-            "packages": {'package 1': (2, 1),
-                         'package 2': (2, 0)},
-            "clients": {'Yossi': {"path": [(0, 1), (1, 1), (1, 0), (0, 0)],
-                                  "packages": ('package 1', 'package 2')}}
-        },
-
-        {
-            "map": [['P', 'P', 'P', 'P'],
-                    ['P', 'P', 'P', 'P'],
-                    ['P', 'I', 'P', 'I'],
-                    ['P', 'P', 'P', 'P'], ],
-            "drones": {'drone 1': (3, 3),
-                       'drone 2': (1, 0)},
-            "packages": {'package 1': (0, 3),
-                         'package 2': (3, 0),
-                         'package 3': (2, 1)},
-            "clients": {'Sarah': {"path": [(0, 2), (2, 2), (2, 0), (0, 0)],
-                                  "packages": ('package 1', 'package 2', 'package 3')}}
-        },
+        # {
+        #     "map": [['P', 'P', 'P', 'P'],
+        #             ['P', 'P', 'P', 'P'],
+        #             ['P', 'I', 'P', 'P'],
+        #             ['P', 'P', 'P', 'P'], ],
+        #     "drones": {'drone 1': (3, 3)},
+        #     "packages": {'package 1': (2, 1),
+        #                  'package 2': (2, 0)},
+        #     "clients": {'Yossi': {"path": [(0, 1), (1, 1), (1, 0), (0, 0)],
+        #                           "packages": ('package 1', 'package 2')}}
+        # },
+        #
+        # {
+        #     "map": [['P', 'P', 'P', 'P'],
+        #             ['P', 'P', 'P', 'P'],
+        #             ['P', 'I', 'P', 'I'],
+        #             ['P', 'P', 'P', 'P'], ],
+        #     "drones": {'drone 1': (3, 3),
+        #                'drone 2': (1, 0)},
+        #     "packages": {'package 1': (0, 3),
+        #                  'package 2': (3, 0),
+        #                  'package 3': (2, 1)},
+        #     "clients": {'Sarah': {"path": [(0, 2), (2, 2), (2, 0), (0, 0)],
+        #                           "packages": ('package 1', 'package 2', 'package 3')}}
+        # },
 
         {
             "map": [['P', 'P', 'P', 'P', 'P'],
