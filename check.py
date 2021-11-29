@@ -71,7 +71,13 @@ def main():
     print(ex1.ids)
     """Here goes the input you want to check"""
     problems = [
-
+        {
+            "map": [['P', 'P'], ],
+            "drones": {'drone 1': (0, 1)},
+            "packages": {'package 1': (0, 1)},
+            "clients": {'Yossi': {"path": [(0, 1), (0, 0)],
+                                  "packages": ('package 1', )}}
+        },
         {
             "map": [['P', 'P', 'P', 'P'],
                     ['P', 'P', 'P', 'P'],
@@ -126,6 +132,188 @@ def main():
                                   "packages": ('package 1', 'package 2', 'package 3')},
                         'Bob': {"path": [(4, 3), (2, 2), (4, 2), (4, 4)],
                                 "packages": ('package 4', )},
+                        }
+        },
+        {
+            "map": [['P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'P'], ],
+            "drones": {'drone 1': (3, 3)},
+            "packages": {'package 1': (0, 2),
+                         'package 2': (0, 2)},
+            "clients": {'Alice': {"path": [(0, 1), (1, 1), (1, 0), (0, 0)],
+                                  "packages": ('package 1', 'package 2')}}
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P'],
+                    ['P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'P'], ],
+            "drones": {'drone 1': (3, 3)},
+            "packages": {'package 1': (0, 2),
+                         'package 2': (0, 2)},
+            "clients": {'Alice': {"path": [(0, 1), (1, 1), (2, 0), (0, 0)],
+                                  "packages": ('package 1', 'package 2')}}
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0),
+                       'drone 2': (2, 4)},
+            "packages": {'package 1': (3, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)],
+                                  "packages": ('package 1',)}}
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0), },
+            "packages": {'package 1': (3, 4),
+                         'package 2': (3, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)],
+                                  "packages": ('package 1',)},
+                        'Bob': {"path": [(2, 0), (2, 1), (2, 3), (2, 4)],
+                                "packages": ('package 2',)}
+                        }
+        },
+
+        {
+            "map": [['P', 'P', 'P'],
+                    ['P', 'P', 'P'],
+                    ['P', 'I', 'P']],
+            "drones": {'drone 1': (0, 1)},
+            "packages": {'package 1': (0, 2),
+                         'package 2': (0, 2)},
+            "clients": {'Alice': {"path": [(2, 0), (2, 2)],
+                                  "packages": ('package 1', 'package 2')}}
+        },
+        # ---- Competative
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0),
+                       'drone 2': (2, 4)},
+            "packages": {'package 1': (3, 4),
+                         'package 2': (3, 4),
+                         'package 3': (3, 4),
+                         'package 4': (3, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)],
+                                  "packages": ('package 1', 'package 2')},
+                        'Bob': {"path": [(2, 3), (3, 3), (3, 2)],
+                                "packages": ('package 3', 'package 4')},
+                        }
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'],
+                    ['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0),
+                       'drone 2': (2, 4)},
+            "packages": {'package 1': (5, 4),
+                         'package 2': (5, 4),
+                         'package 3': (5, 4),
+                         'package 4': (5, 4),
+                         'package 5': (5, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 3), (0, 4)],
+                                  "packages": ('package 1', 'package 2')},
+                        'Bob': {"path": [(2, 3), (3, 3), (3, 2)],
+                                "packages": ('package 3', 'package 4')},
+                        'Charlie': {"path": [(5, 1)],
+                                    "packages": ('package 5',)},
+                        }
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'],
+                    ['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0),
+                       'drone 2': (2, 4),
+                       'drone 3': (5, 0)},
+            "packages": {'package 1': (5, 4),
+                         'package 2': (5, 4),
+                         'package 3': (5, 4),
+                         'package 4': (5, 4),
+                         'package 5': (5, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 3), (0, 4)],
+                                  "packages": ('package 5', 'package 2')},
+                        'Bob': {"path": [(2, 3), (3, 3), (3, 2)],
+                                "packages": ('package 3', 'package 4')},
+                        'Charlie': {"path": [(5, 1)],
+                                    "packages": ('package 1',)},
+                        }
+        },
+
+        {
+            "map": [['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'],
+                    ['P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P'], ],
+            "drones": {'drone 1': (3, 0),
+                       'drone 2': (2, 4)},
+            "packages": {'package 1': (5, 4),
+                         'package 2': (5, 4),
+                         'package 3': (5, 4),
+                         'package 4': (5, 4),
+                         'package 5': (5, 4)},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (0, 3), (0, 4)],
+                                  "packages": ('package 1', 'package 2')},
+                        'Bob': {"path": [(2, 3), (3, 3), (3, 2)],
+                                "packages": ('package 3', 'package 4')},
+                        'Charlie': {"path": [(5, 1)],
+                                    "packages": ('package 5',)},
+                        }
+        },
+        {
+            "map": [['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'I', 'P'],
+                    ['P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P'],
+                    ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P']],
+            "drones": {'drone 1': (14, 10),
+                       'drone 2': (8, 11),
+                       'drone 3': (9, 3),},
+            "packages": {'p1': (9, 6),
+                         'p2': (9, 6),
+                         'p3': (9, 6),
+                         'p4': (9, 6),
+                         'p5': (9, 6),
+                         'p6': (9, 6),
+},
+            "clients": {'Alice': {"path": [(0, 0), (0, 1), (1, 1), (1, 0)],
+                                  "packages": ('p1', 'p2', 'p3', 'p4', 'p5')},
+                        'Bob': {"path": [(4, 4), (4, 5), (5, 5), (5, 4)],
+                                "packages": ('p6', )},
+
                         }
         },
     ]

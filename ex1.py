@@ -135,7 +135,8 @@ class DroneProblem(search.Problem):
         #     else:
         #         h += self.shortest_distance_from_client(drone, state_dict)
         # return h
-
+        if self.goal_test(node.state):
+            return 0
         count = 0
         dict_state = self.loads(node.state)
         for client in dict_state[CLIENTS]:
@@ -307,6 +308,9 @@ class DroneProblem(search.Problem):
         possible_atomic_actions.extend(
             self.get_deliver_atomic_actions(drone_data, state_dict))
 
+        if self.add_wait(state_dict, drone):
+            possible_atomic_actions.append((WAIT, drone))
+
         return tuple(possible_atomic_actions)
 
     def get_move_atomic_actions(self, drone_data):
@@ -404,6 +408,20 @@ class DroneProblem(search.Problem):
             new_index = (old_index + 1) % path_length
             clients[client][LOCATION] = new_index
             # print(f"Turn index of {client}: {old_index} -> {new_index}")
+
+    def add_wait(self, state_dict, drone):
+        drone_location = state_dict[DRONES][drone][LOCATION]
+        for package in state_dict[DRONES][drone][PACKAGES]:
+            client = state_dict[PACKAGES][package][CLIENTS]
+            client_path = self.client_paths[client]
+            client_path_index = state_dict[CLIENTS][client][LOCATION]
+            client_location = client_path[client_path_index]
+            if drone_location in client_path and client_location != drone_location:
+                client_next_location = client_path[(client_path_index + 1) % len(client_path)]
+                client_next_next_location = client_path[(client_path_index + 2) % len(client_path)]
+                if drone_location in (client_next_location, client_next_next_location):  # TODO: maybe delete this nested if
+                    return True
+        return False
 
     def create_map_graph(self, problem_map):
         m = len(problem_map)
