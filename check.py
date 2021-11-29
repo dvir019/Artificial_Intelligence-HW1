@@ -283,6 +283,39 @@ def main():
                                     "packages": ('package 5',)},
                         }
         },
+#         {
+#             "map": [['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'I', 'P'],
+#                     ['P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'I', 'I', 'I', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'I', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P'],
+#                     ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P']],
+#             "drones": {'drone 1': (14, 10),
+#                        'drone 2': (8, 11),
+#                        'drone 3': (9, 3),},
+#             "packages": {'p1': (9, 6),
+#                          'p2': (9, 6),
+#                          'p3': (9, 6),
+#                          'p4': (9, 6),
+#                          'p5': (9, 6),
+#                          'p6': (9, 6),
+# },
+#             "clients": {'Alice': {"path": [(0, 0), (0, 1), (1, 1), (1, 0)],
+#                                   "packages": ('p1', 'p2', 'p3', 'p4', 'p5')},
+#                         'Bob': {"path": [(4, 4), (4, 5), (5, 5), (5, 4)],
+#                                 "packages": ('p6', )},
+#
+#                         }
+#         },
         {
             "map": [['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P'],
                     ['P', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
@@ -301,19 +334,38 @@ def main():
                     ['P', 'P', 'P', 'I', 'P', 'P', 'P', 'I', 'P', 'P', 'P', 'P', 'P', 'P', 'P']],
             "drones": {'drone 1': (14, 10),
                        'drone 2': (8, 11),
-                       'drone 3': (9, 3),},
+                       'drone 3': (9, 3),
+                       'drone 4': (6, 0),
+                       'drone 5': (1, 12),
+                       'drone 6': (13, 2)},
             "packages": {'p1': (9, 6),
                          'p2': (9, 6),
                          'p3': (9, 6),
                          'p4': (9, 6),
                          'p5': (9, 6),
                          'p6': (9, 6),
-},
+                         'p7': (9, 6),
+                         'p8': (9, 6),
+                         'p9': (9, 6),
+                         'p10': (9, 6),
+                         'p11': (9, 6),
+                         'p12': (9, 6),
+                         'p13': (9, 6),
+                         'p14': (9, 6),
+                         'p15': (9, 6),
+                         'p16': (9, 6),
+                         'p17': (9, 6),
+                         'p18': (9, 6),
+                         'p19': (9, 6),
+                         'p20': (9, 6)},
             "clients": {'Alice': {"path": [(0, 0), (0, 1), (1, 1), (1, 0)],
                                   "packages": ('p1', 'p2', 'p3', 'p4', 'p5')},
                         'Bob': {"path": [(4, 4), (4, 5), (5, 5), (5, 4)],
-                                "packages": ('p6', )},
-
+                                "packages": ('p6', 'p7', 'p8', 'p9', 'p10')},
+                        'Charlie': {"path": [(8, 11), (9, 3), (8, 0), (3, 12)],
+                                    "packages": ('p11', 'p12', 'p13', 'p14', 'p15')},
+                        'David': {"path": [(14, 14), (3, 13), (6, 6), (6, 7)],
+                                  "packages": ('p16', 'p17', 'p18', 'p19', 'p20')},
                         }
         },
     ]
@@ -322,3 +374,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    # print([(('move', 'drone 1', (3, 1)), ('move', 'drone 2', (3, 4)), ('move', 'drone 3', (4, 0))), (('move', 'drone 1', (4, 1)), ('move', 'drone 2', (4, 4)), ('move', 'drone 3', (4, 1))), (('move', 'drone 1', (4, 2)), ('move', 'drone 2', (5, 4)), ('move', 'drone 3', (4, 2))), (('move', 'drone 1', (4, 3)), ('pick up', 'drone 2', 'package 1'), ('move', 'drone 3', (4, 3))), (('move', 'drone 1', (4, 4)), ('pick up', 'drone 2', 'package 2'), ('move', 'drone 3', (4, 4))), (('move', 'drone 1', (5, 4)), ('move', 'drone 2', (4, 4)), ('move', 'drone 3', (5, 4))), (('pick up', 'drone 1', 'package 3'), ('move', 'drone 2', (3, 4)), ('pick up', 'drone 3', 'package 4')), (('move', 'drone 1', (4, 4)), ('move', 'drone 2', (2, 4)), ('pick up', 'drone 3', 'package 5')), (('move', 'drone 1', (3, 4)), ('move', 'drone 2', (2, 3)), ('move', 'drone 3', (4, 4))), (('move', 'drone 1', (2, 4)), ('move', 'drone 2', (1, 3)), ('move', 'drone 3', (3, 4))), (('move', 'drone 1', (2, 3)), ('move', 'drone 2', (2, 3)), ('move', 'drone 3', (2, 4))), (('wait', 'drone 1'), ('move', 'drone 2', (1, 3)), ('move', 'drone 3', (2, 3))), (('deliver', 'drone 1', 'Bob', 'package 3'), ('move', 'drone 2', (0, 3)), ('deliver', 'drone 3', 'Bob', 'package 4')), (('move', 'drone 1', (1, 3)), ('move', 'drone 2', (0, 2)), ('move', 'drone 3', (1, 3))), (('move', 'drone 1', (0, 3)), ('move', 'drone 2', (0, 1)), ('move', 'drone 3', (0, 3))), (('move', 'drone 1', (0, 2)), ('move', 'drone 2', (0, 0)), ('move', 'drone 3', (0, 2))), (('move', 'drone 1', (0, 1)), ('deliver', 'drone 2', 'Alice', 'package 2'), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (1, 0)), ('deliver', 'drone 3', 'Alice', 'package 5')), (('move', 'drone 1', (1, 0)), ('move', 'drone 2', (2, 0)), ('move', 'drone 3', (0, 0))), (('move', 'drone 1', (2, 0)), ('move', 'drone 2', (2, 1)), ('move', 'drone 3', (1, 0))), (('move', 'drone 1', (2, 1)), ('move', 'drone 2', (3, 1)), ('move', 'drone 3', (2, 0))), (('move', 'drone 1', (3, 1)), ('move', 'drone 2', (4, 1)), ('move', 'drone 3', (2, 1))), (('move', 'drone 1', (4, 1)), ('move', 'drone 2', (5, 1)), ('move', 'drone 3', (3, 1))), (('move', 'drone 1', (3, 1)), ('deliver', 'drone 2', 'Charlie', 'package 1'), ('move', 'drone 3', (2, 1)))])
+    # print([(('move', 'drone 1', (3, 1)), ('move', 'drone 2', (3, 4)), ('move', 'drone 3', (4, 0))), (('move', 'drone 1', (4, 1)), ('move', 'drone 2', (4, 4)), ('move', 'drone 3', (4, 1))), (('move', 'drone 1', (4, 2)), ('move', 'drone 2', (5, 4)), ('move', 'drone 3', (4, 2))), (('move', 'drone 1', (4, 3)), ('pick up', 'drone 2', 'package 1'), ('move', 'drone 3', (4, 3))), (('move', 'drone 1', (4, 4)), ('pick up', 'drone 2', 'package 2'), ('move', 'drone 3', (4, 4))), (('move', 'drone 1', (3, 4)), ('move', 'drone 2', (4, 4)), ('move', 'drone 3', (5, 4))), (('move', 'drone 1', (4, 4)), ('move', 'drone 2', (4, 3)), ('pick up', 'drone 3', 'package 3')), (('move', 'drone 1', (3, 4)), ('move', 'drone 2', (4, 2)), ('pick up', 'drone 3', 'package 4')), (('move', 'drone 1', (2, 4)), ('move', 'drone 2', (4, 1)), ('move', 'drone 3', (4, 4))), (('move', 'drone 1', (2, 3)), ('move', 'drone 2', (5, 1)), ('move', 'drone 3', (3, 4))), (('move', 'drone 1', (1, 3)), ('deliver', 'drone 2', 'Charlie', 'package 1'), ('move', 'drone 3', (2, 4))), (('move', 'drone 1', (2, 3)), ('move', 'drone 2', (4, 1)), ('move', 'drone 3', (2, 3))), (('move', 'drone 1', (1, 3)), ('move', 'drone 2', (4, 2)), ('deliver', 'drone 3', 'Bob', 'package 4')), (('move', 'drone 1', (2, 3)), ('move', 'drone 2', (4, 3)), ('wait', 'drone 3')), (('move', 'drone 1', (1, 3)), ('move', 'drone 2', (4, 4)), ('wait', 'drone 3')), (('move', 'drone 1', (0, 3)), ('move', 'drone 2', (5, 4)), ('deliver', 'drone 3', 'Bob', 'package 3')), (('move', 'drone 1', (0, 2)), ('pick up', 'drone 2', 'package 5'), ('move', 'drone 3', (1, 3))), (('move', 'drone 1', (0, 1)), ('move', 'drone 2', (4, 4)), ('move', 'drone 3', (0, 3))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (3, 4)), ('move', 'drone 3', (0, 2))), (('move', 'drone 1', (0, 1)), ('move', 'drone 2', (2, 4)), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (1, 4)), ('move', 'drone 3', (0, 0))), (('move', 'drone 1', (0, 1)), ('move', 'drone 2', (0, 4)), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (0, 3)), ('move', 'drone 3', (0, 0))), (('move', 'drone 1', (0, 1)), ('move', 'drone 2', (0, 2)), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (0, 1)), ('move', 'drone 3', (0, 0))), (('move', 'drone 1', (0, 1)), ('deliver', 'drone 2', 'Alice', 'package 5'), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('move', 'drone 2', (0, 0)), ('move', 'drone 3', (0, 0))), (('move', 'drone 1', (0, 1)), ('wait', 'drone 2'), ('move', 'drone 3', (0, 1))), (('move', 'drone 1', (0, 0)), ('deliver', 'drone 2', 'Alice', 'package 2'), ('move', 'drone 3', (0, 0)))])
+

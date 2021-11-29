@@ -142,7 +142,7 @@ class DroneProblem(search.Problem):
         for client in dict_state[CLIENTS]:
             count += len(dict_state[CLIENTS][client][PACKAGES])
         # return count + node.depth
-        return self.objects_distance_sum_h(node) + node.depth + count
+        return self.objects_distance_sum_h(node) + self.punish_last_action_h(node) + node.depth + count
 
     def objects_distance_sum_h(self, node):
         state_dict = self.loads(node.state)
@@ -157,7 +157,6 @@ class DroneProblem(search.Problem):
                 client_path = self.client_paths[client]
                 objects_locations.append(client_path[0])#(self.client_centroids[client])#(client_path[0])
 
-
         objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
 
         sum = 0
@@ -169,11 +168,41 @@ class DroneProblem(search.Problem):
 
         return sum
 
+    def punish_last_action_h(self, node):
+        state_dict = self.loads(node.state)
+        parent_node = node.parent
+        if not parent_node:
+            return 0
+        parent_state = self.loads(parent_node.state)
+        parent_action = parent_node.action
+        if not parent_action:
+            return 0
+        action = node.action
+
+        punishment = 0
+
+        for i in range(len(action)):
+            node_atomic_action = action[i]
+            parent_atomic_action = parent_action[i]
+            node_atomic_action_name = node_atomic_action[0]
+            parent_atomic_action_name = parent_atomic_action
+            if parent_atomic_action_name == WAIT and node_atomic_action_name not in (WAIT, DELIVER):
+                punishment += 50
+            if parent_atomic_action_name == MOVE and node_atomic_action_name == MOVE:
+                grandparent_node = parent_node.parent
+                if grandparent_node:
+                    grandparent_state = self.loads(grandparent_node.state)
+                    drone = node_atomic_action[1]
+                    if grandparent_state[DRONES][drone][LOCATION] == state_dict[DRONES][drone][LOCATION]:
+                        punishment += 50
+
+        return punishment
+
+
     def objects_distance_sum_closest_clients_h(self, node):
         state_dict = self.loads(node.state)
         packages = state_dict[PACKAGES]
         objects_locations = [packages[package][LOCATION] for package in packages if not isinstance(packages[package][LOCATION], str)]
-
 
         packages_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
 
@@ -190,7 +219,7 @@ class DroneProblem(search.Problem):
     def distance_sum_from_location(self, location, locations_list):
         sum = 0
         for index in locations_list:
-            sum += self.dist_matrix[location][index]
+            sum += self.dist_matrix[location][index] ** 0.5
         return sum
 
     def get_closest_clients_distances_sum(self, state_dict, drone):
@@ -640,3 +669,4 @@ def create_drone_problem(game):
 #     #     print(f"{k}: {v}")
 #     # print(x)
 
+a=[('move', 'drone 1', (3, 1)), ('move', 'drone 1', (4, 1)), ('move', 'drone 1', (4, 2)), ('move', 'drone 1', (4, 3)), ('move', 'drone 1', (4, 4)), ('move', 'drone 1', (5, 4)), ('pick up', 'drone 1', 'package 1'), ('pick up', 'drone 1', 'package 3'), ('move', 'drone 1', (4, 4)), ('move', 'drone 1', (5, 4)), ('move', 'drone 1', (4, 4)), ('move', 'drone 1', (3, 4)), ('move', 'drone 1', (2, 4)), ('move', 'drone 1', (2, 3)), ('wait', 'drone 1'), ('deliver', 'drone 1', 'Bob', 'package 3'), ('move', 'drone 1', (1, 3)), ('move', 'drone 1', (0, 3)), ('deliver', 'drone 1', 'Alice', 'package 1'), ('move', 'drone 1', (1, 3)), ('move', 'drone 1', (2, 3)), ('move', 'drone 1', (1, 3)), ('move', 'drone 1', (0, 3)), ('move', 'drone 1', (0, 2)), ('move', 'drone 1', (0, 1)), ('move', 'drone 1', (0, 0)), ('move', 'drone 1', (0, 1))]
