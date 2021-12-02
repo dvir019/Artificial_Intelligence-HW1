@@ -141,8 +141,12 @@ class DroneProblem(search.Problem):
         dict_state = self.loads(node.state)
         for client in dict_state[CLIENTS]:
             count += len(dict_state[CLIENTS][client][PACKAGES])
+        for package in dict_state[PACKAGES]:
+            if not isinstance(dict_state[PACKAGES][package][LOCATION], str):
+                count += 20000000000000000000000000_000_000
+
         # return count + node.depth
-        return self.objects_distance_sum_h(node) + self.punish_last_action_h(node) + node.depth + count
+        return self.objects_distance_sum_package_more_weight_h(node) + node.depth + count
 
     def objects_distance_sum_h(self, node):
         state_dict = self.loads(node.state)
