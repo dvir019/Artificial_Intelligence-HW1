@@ -151,15 +151,41 @@ class DroneProblem(search.Problem):
 
         clients = state_dict[CLIENTS]
         # clients_locations = []
+        sum = 0
         for client in clients:
             if clients[client][PACKAGES]:
                 clients_index = clients[client][LOCATION]
                 client_path = self.client_paths[client]
                 objects_locations.append(client_path[0])#(self.client_centroids[client])#(client_path[0])
+                # sum += len(client_path) - clients_index  # TODO: improved some.
 
         objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
 
+        drones = state_dict[DRONES]
+        for drone in drones:
+            drone_location = drones[drone][LOCATION]
+            drone_location_index = self.convert_tuple_to_index(drone_location)
+            sum += self.distance_sum_from_location(drone_location_index, objects_locations_indexes)
+
+        return sum
+
+    def objects_distance_sum_package_more_weight_h(self, node):
+        state_dict = self.loads(node.state)
+        packages = state_dict[PACKAGES]
+        objects_locations = [packages[package][LOCATION] for package in packages if not isinstance(packages[package][LOCATION], str)] * 2
+
+        clients = state_dict[CLIENTS]
+        # clients_locations = []
         sum = 0
+        for client in clients:
+            if clients[client][PACKAGES]:
+                clients_index = clients[client][LOCATION]
+                client_path = self.client_paths[client]
+                objects_locations.append(client_path[0])#(self.client_centroids[client])#(client_path[0])
+                # sum += len(client_path) - clients_index  # TODO: improved some.
+
+        objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
+
         drones = state_dict[DRONES]
         for drone in drones:
             drone_location = drones[drone][LOCATION]
@@ -185,9 +211,20 @@ class DroneProblem(search.Problem):
             node_atomic_action = action[i]
             parent_atomic_action = parent_action[i]
             node_atomic_action_name = node_atomic_action[0]
-            parent_atomic_action_name = parent_atomic_action
+            parent_atomic_action_name = parent_atomic_action[0]
             if parent_atomic_action_name == WAIT and node_atomic_action_name not in (WAIT, DELIVER):
                 punishment += 50
+            # if node_atomic_action_name == MOVE:
+            #     predecessor_node = parent_node
+            #     while predecessor_node and predecessor_node.action and predecessor_node.action[i][0] != MOVE:
+            #         predecessor_node = predecessor_node.parent
+            #
+            #     if predecessor_node and predecessor_node.action:
+            #         predecessor_parent_state = self.loads(predecessor_node.parent.state)
+            #         drone = node_atomic_action[1]
+            #         if predecessor_parent_state[DRONES][drone][LOCATION] == state_dict[DRONES][drone][LOCATION]:
+            #             punishment += 50
+
             if parent_atomic_action_name == MOVE and node_atomic_action_name == MOVE:
                 grandparent_node = parent_node.parent
                 if grandparent_node:
@@ -198,6 +235,125 @@ class DroneProblem(search.Problem):
 
         return punishment
 
+    def nearest_neighbor_h(self, node):
+        state_dict = self.loads(node.state)
+        objects_indexes = self.get_packages_location_indexes(state_dict)
+        objects_indexes = [(True, info[0], info[1]) for info in objects_indexes]
+
+        sum = 0
+
+        drones = state_dict[DRONES]
+        for drone in drones:
+            unvisited = set(objects_indexes)
+            current = (False, drone, self.convert_tuple_to_index(drones[drone][LOCATION]))
+            while unvisited:
+                next = min(unvisited, key=(lambda obj: self.dist_matrix[current[2]][obj[2]]))
+                sum += self.dist_matrix[current[2]][next[2]]
+                unvisited.remove(next)
+                if next[0]:
+                    package = next[1]
+                    client_of_package = state_dict[PACKAGES][package][CLIENTS]
+                    client_path_index = state_dict[CLIENTS][client_of_package][LOCATION]
+                    client_location = self.client_paths[client_of_package][client_path_index]
+                    client_index = self.convert_tuple_to_index(client_location)
+                    unvisited.add((False, client_of_package, client_index))
+
+                current = next
+
+        return sum
+
+
+    def get_objects_location_indexes(self, state_dict):
+        packages = state_dict[PACKAGES]
+        objects_locations = [packages[package][LOCATION] for package in packages if
+                             not isinstance(packages[package][LOCATION], str)]
+
+        clients = state_dict[CLIENTS]
+        # clients_locations = []
+        for client in clients:
+            if clients[client][PACKAGES]:
+                clients_index = clients[client][LOCATION]
+                client_path = self.client_paths[client]
+                objects_locations.append(client_path[0])  # (self.client_centroids[client])#(client_path[0])
+
+        objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
+        return objects_locations_indexes
+
+    def get_packages_location_indexes(self, state_dict):
+        packages = state_dict[PACKAGES]
+        packages_locations = [(package, packages[package][LOCATION]) for package in packages if
+                             not isinstance(packages[package][LOCATION], str)]
+
+        packages_locations_indexes = [(package[0], self.convert_tuple_to_index(package[1])) for package in packages_locations]
+        return packages_locations_indexes
+
+    def farthest_objects_distance_h(self, node):
+        state_dict = self.loads(node.state)
+        packages = state_dict[PACKAGES]
+        objects_locations = [packages[package][LOCATION] for package in packages if not isinstance(packages[package][LOCATION], str)]
+
+        clients = state_dict[CLIENTS]
+        # clients_locations = []
+        for client in clients:
+            if clients[client][PACKAGES]:
+                clients_index = clients[client][LOCATION]
+                client_path = self.client_paths[client]
+                objects_locations.append(client_path[0])#(self.client_centroids[client])#(client_path[0])
+
+        objects_locations_indexes = [self.convert_tuple_to_index(loc) for loc in objects_locations]
+
+        object_pairs = list(itertools.combinations(objects_locations_indexes, 2))
+
+        if not object_pairs:
+            return 0
+
+        max_distance_pair = max(object_pairs, key=(lambda pair: self.dist_matrix[pair[0]][pair[1]]))
+        obj1_index, obj2_index = max_distance_pair
+        max_distance = self.dist_matrix[obj1_index][obj2_index]
+
+        sum = 0
+
+        drones = state_dict[DRONES]
+        for drone in drones:
+            drone_location = drones[drone][LOCATION]
+            drone_location_index = self.convert_tuple_to_index(drone_location)
+            dist_drone_obj1 = self.dist_matrix[drone_location_index][obj1_index]
+            dist_drone_obj2 = self.dist_matrix[drone_location_index][obj2_index]
+            sum += min(dist_drone_obj1, dist_drone_obj2) + max_distance
+
+        return sum
+
+    def split_routes_h(self, node):
+        state_dict = self.loads(node.state)
+        division = self.divide_packages_to_drones(state_dict)
+        drones = state_dict[DRONES]
+        sum = 0
+        for drone in drones:
+            drone_packages = division[drone]
+            clients = set()
+            for package in drone_packages:
+                clients.add(state_dict[PACKAGES][package][CLIENTS])
+            objects_location_indexes = [self.convert_tuple_to_index(state_dict[PACKAGES][package][LOCATION]) for package in drone_packages]
+            objects_location_indexes.extend(self.convert_tuple_to_index(self.client_paths[client][0]) for client in clients)
+            drone_location_index = self.convert_tuple_to_index(state_dict[DRONES][drone][LOCATION])
+            sum += self.distance_sum_from_location(drone_location_index, objects_location_indexes)
+        return sum
+
+    def divide_packages_to_drones(self, state_dict):
+        packages = [package for package in state_dict[PACKAGES] if not isinstance(state_dict[PACKAGES][package][LOCATION], str)]
+        drones = list(state_dict[DRONES].keys())
+
+        packages_per_drone = len(packages) // len(drones)
+
+        drone_packages = {}
+        for i in range(len(drones) - 1):
+            drone_lacation_index = self.convert_tuple_to_index(state_dict[DRONES][drones[i]][LOCATION])
+            packages.sort(key=(lambda package: self.dist_matrix[drone_lacation_index][self.convert_tuple_to_index(state_dict[PACKAGES][package][LOCATION])] + self.dist_matrix[self.convert_tuple_to_index(state_dict[PACKAGES][package][LOCATION])][self.convert_tuple_to_index(self.client_paths[state_dict[PACKAGES][package][CLIENTS]][0])]))
+            drone_packages[drones[i]] = packages[:packages_per_drone]
+            packages = packages[packages_per_drone:]
+
+        drone_packages[drones[-1]] = packages
+        return drone_packages
 
     def objects_distance_sum_closest_clients_h(self, node):
         state_dict = self.loads(node.state)
@@ -219,7 +375,7 @@ class DroneProblem(search.Problem):
     def distance_sum_from_location(self, location, locations_list):
         sum = 0
         for index in locations_list:
-            sum += self.dist_matrix[location][index] ** 0.5
+            sum += self.dist_matrix[location][index] ** 0.5  # TODO: Improve number of actions, worse time
         return sum
 
     def get_closest_clients_distances_sum(self, state_dict, drone):
@@ -329,15 +485,30 @@ class DroneProblem(search.Problem):
         drone_packages = drone_object[PACKAGES]
         drone_data = [drone, drone_location, drone_packages]
 
+        remaining_packages = [package for package in state_dict[PACKAGES] if not isinstance(state_dict[PACKAGES][package][LOCATION], str)]
+
+        if not drone_packages and not remaining_packages:
+            return [(WAIT, drone)]
+
+        # if self.map[drone_location[0]][drone_location[1]] == IMPASSABLE:
+        #     for package in drone_packages:
+        #         client = state_dict[PACKAGES][package][CLIENTS]
+        #         client_path = self.client_paths[client]
+        #         if all(map((lambda location: self.map[location[0]][location[1]] == IMPASSABLE), client_path)):
+        #             if client_path[state_dict[CLIENTS][client][LOCATION]] != drone_location:
+        #                 return [(WAIT, drone)]
+
         possible_atomic_actions = []#[(WAIT, drone)]
-        possible_atomic_actions.extend(self.get_pickup_atomic_actions(
-            drone_data, state_dict))
-        possible_atomic_actions.extend(
-            self.get_move_atomic_actions(drone_data))
         possible_atomic_actions.extend(
             self.get_deliver_atomic_actions(drone_data, state_dict))
+        if not possible_atomic_actions:
+            possible_atomic_actions.extend(self.get_pickup_atomic_actions(
+                drone_data, state_dict))
+        if not possible_atomic_actions:
+            possible_atomic_actions.extend(
+                self.get_move_atomic_actions(drone_data))
 
-        if self.add_wait(state_dict, drone):
+        if self.add_wait(state_dict, drone) or not possible_atomic_actions:
             possible_atomic_actions.append((WAIT, drone))
 
         return tuple(possible_atomic_actions)
